@@ -37,26 +37,36 @@ type family Func sem as r where
   Func sem '[] r       = r
   Func sem (a ': as) r = sem a -> Func sem as r
 
+
 type family FuncU (sem :: [k] -> k -> Type) (ss :: [Sig2 k])
                   (r :: k) = res | res -> sem r where
   FuncU sem '[] r = EnvI sem r
   FuncU sem ((as ':~> a) ': ss) r = Func (EnvI sem) as (EnvI sem a)
                                     -> FuncU sem ss r
 
-liftSOn :: forall sem ss r. Env DimSimple ss -> FuncU sem ss r
-liftSOn _ = undefined
+lifts :: Env DimSimple ss -> FuncU sem ss r
+lifts _ = undefined
 
--- The following code causes non termination of type checking in GHC 9.2, 9.8, and 9.10.
+-- The following version specialized to singletons does not cause an issue
+type family FuncS (sem :: [k] -> k -> Type) (s :: Sig2 k)
+                  (r :: k) = res | res -> sem r where
+  FuncS sem (as ':~> a) r = Func (EnvI sem) as (EnvI sem a) -> EnvI sem r
+
+
+lift :: DimSimple s -> FuncS sem s r
+lift _ = undefined
+
+-- The following code causes non termination of type checking in GHC 9.2, 9.8, 9.10, and 9.12
 f :: (EnvI sem a -> EnvI sem b) -> EnvI sem (a -> b)
-f = liftSOn (ECons (liftOfLength (LS LZ)) ENil)
+f = lifts (ECons (liftOfLength (LS LZ)) ENil)
 
 -- Following versions have no issues in GHC 9.8
--- f = undefined $ liftSOn (ECons (liftOfLength (LS LZ)) ENil)
--- f = let h = liftSOn (ECons (liftOfLength (LS LZ)) ENil) in h
--- f = h where h = liftSOn (ECons (liftOfLength (LS LZ)) ENil)
--- f = liftSOn (ECons (DimSimple (LS LZ)) ENil)
--- f = liftSOn d where {d :: Env DimSimple '[ '[a] :~> b ]; d = (ECons (liftOfLength (LS LZ)) ENil) }
-
+-- f = undefined $ lifts (ECons (liftOfLength (LS LZ)) ENil)
+-- f = let h = lifts (ECons (liftOfLength (LS LZ)) ENil) in h
+-- f = h where h = lifts (ECons (liftOfLength (LS LZ)) ENil)
+-- f = lifts (ECons (DimSimple (LS LZ)) ENil)
+-- f = lifts d where {d :: Env DimSimple '[ '[a] :~> b ]; d = (ECons (liftOfLength (LS LZ)) ENil) }
+-- f = lift (liftOfLength (LS LZ))
 
 main :: IO ()
 main = pure ()

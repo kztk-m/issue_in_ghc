@@ -57,16 +57,21 @@ lift :: DimSimple s -> FuncS sem s r
 lift _ = undefined
 
 -- The following code causes non termination of type checking in GHC 9.2, 9.8, 9.10, and 9.12
-f :: (EnvI sem a -> EnvI sem b) -> EnvI sem (a -> b)
+f :: (EnvI Sem a -> EnvI Sem b) -> EnvI Sem (a -> b)
 f = lifts (ECons (liftOfLength (LS LZ)) ENil)
 
+data Sem (env :: [Type]) a
+
 -- Following versions have no issues in GHC 9.8
+-- (I haven't tested other compilers but expect the similar results)
 -- f = undefined $ lifts (ECons (liftOfLength (LS LZ)) ENil)
 -- f = let h = lifts (ECons (liftOfLength (LS LZ)) ENil) in h
 -- f = h where h = lifts (ECons (liftOfLength (LS LZ)) ENil)
 -- f = lifts (ECons (DimSimple (LS LZ)) ENil)
 -- f = lifts d where {d :: Env DimSimple '[ '[a] :~> b ]; d = (ECons (liftOfLength (LS LZ)) ENil) }
 -- f = lift (liftOfLength (LS LZ))
+-- f = (lifts :: Env DimSimple ss -> FuncU Sem ss r) (ECons (liftOfLength (LS LZ)) ENil)
+-- f without its signature
 
 main :: IO ()
 main = pure ()

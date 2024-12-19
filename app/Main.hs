@@ -31,7 +31,7 @@ class LiftOfLength f as t | t -> as where
 instance t ~ (as ':~> a) => LiftOfLength DimSimple as t where
   liftOfLength = undefined
 
-data EnvI (sem :: [k] -> k -> Type) (a :: k) -- = EnvI { runEnvI :: forall as. Env Proxy as -> sem as a }
+data EnvI (sem :: [k] -> k -> Type) (a :: k)
 
 type family Func sem as r where
   Func sem '[] r       = r
